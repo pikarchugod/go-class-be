@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('progress_tracks', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('order_number')->unique();
-            $table->decimal('total_amount', 10, 2);
-            $table->enum('status', ['pending', 'paid', 'failed', 'cancelled'])->default('pending');
-            $table->string('payment_method')->nullable();
-            $table->string('trade_no')->nullable();
+            $table->unsignedBigInteger('chapter_id');
+            $table->enum('progress_status', ['not_started', 'in_progress', 'completed'])->default('not_started');
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('orders');
+        Schema::dropIfExists('progress_tracks');
     }
 };

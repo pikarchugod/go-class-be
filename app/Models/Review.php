@@ -7,15 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Models\Course;
 
-class Cart extends Model
+class Review extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
         'course_id',
-        'quantity',
-        'price',
+        'rating',
+        'comment',
     ];
 
     public function user()

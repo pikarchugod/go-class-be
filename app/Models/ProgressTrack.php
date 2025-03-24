@@ -5,17 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
-use App\Models\Course;
+use App\Models\Chapter;
 
-class Cart extends Model
+class ProgressTrack extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'course_id',
-        'quantity',
-        'price',
+        'chapter_id',
+        'progress_status',
     ];
 
     public function user()
@@ -23,8 +22,8 @@ class Cart extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function course()
+    public function chapter()
     {
-        return $this->belongsTo(Course::class);
+        return $this->belongsTo(Chapter::class);
     }
 }

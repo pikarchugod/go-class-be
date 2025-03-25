@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->string('order_number')->unique();
-            $table->decimal('total_amount', 10, 2);
+            $table->integer('total_amount');
             $table->enum('status', ['pending', 'paid', 'failed', 'canceled'])->default('pending');
             $table->string('payment_method')->nullable();
             $table->string('trade_no')->nullable();

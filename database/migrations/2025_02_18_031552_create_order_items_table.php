@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('course_id');
-            $table->decimal('price', 10, 2);
+            $table->integer('price');
             $table->integer('quantity')->default(1);
             $table->timestamps();
         });

@@ -7,6 +7,7 @@ use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +51,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/favorites/{course}', [FavoriteController::class, 'store']);
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::delete('/favorites/{course}', [FavoriteController::class, 'destroy']);
+
+    Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->name('payment.initiate');
 
     // 登出
     Route::post('/logout', [AuthController::class, 'logout']);

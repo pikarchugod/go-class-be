@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,8 +19,13 @@ use App\Http\Controllers\AuthController;
 
 Route::get('/auth/google', [AuthController::class, 'redirectToGoogle']);
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
+// 後端回調 (POST)
+Route::post('/ecpay/callback', [PaymentController::class, 'paymentCallback'])->name('ecpay.callback');
+
+// 前端跳轉 (GET)
+Route::get('/ecpay/redirect', [PaymentController::class, 'paymentRedirect'])->name('ecpay.redirect');
+
 
 Route::get('/', function () {
     return view('welcome');
 });
-

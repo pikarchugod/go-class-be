@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('pay_method');  // e.g., 'credit_card', 'line_pay'
             $table->enum('pay_status', ['pending', 'paid', 'failed'])->default('pending');
             $table->string('transaction_id')->nullable();
-            $table->decimal('amount', 10, 2);
+            $table->integer('amount');
             $table->timestamps();
         });
     }

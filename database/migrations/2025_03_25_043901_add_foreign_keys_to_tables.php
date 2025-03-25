@@ -12,8 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('categories', function (Blueprint $table) {
-            $table->foreign('parent_id')->references('id')->on('categories')->onDelete('set null');
+            $table->foreign('parent_id', 'fk_categories_parent') // 🔥 改名字！
+                ->references('id')->on('categories')
+                ->onDelete('set null');
         });
+
 
         Schema::table('courses', function (Blueprint $table) {
             $table->foreign('teacher_id')->references('id')->on('users')->onDelete('cascade');

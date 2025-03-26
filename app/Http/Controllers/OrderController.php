@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
+use Illuminate\Support\Str;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
-
 
 class OrderController extends Controller
 {
@@ -17,22 +16,24 @@ class OrderController extends Controller
 
         // 取得購物車內容 (含課程資料)
         $cartItems = $user->carts()->with('course')->get();
-
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => '購物車是空的'], 400);
         }
 
-        // 計算總金額
+        // 計算總金額（確保為整數）
         $totalAmount = $cartItems->sum(fn($item) => $item->price * $item->quantity);
 
-        // 建立訂單（預設支付方式為信用卡，後續可調整）
+        // 產生唯一的 merchant_trade_no
+        $merchantTradeNo = 'ORDER' . Str::random(10);
+
+        // 建立訂單，寫入 orders 資料表
         $order = Order::create([
-            'user_id'      => $user->id,
-            'order_number' => uniqid('ORDER_'),
-            'total_amount' => $totalAmount,
-            'status'       => 'pending',  // 預設未付款
-            'payment_method' => 'credit_card',
-            'trade_no'     => null,
+            'user_id'           => $user->id,
+            'order_number'      => uniqid('ORDER_'),
+            'merchant_trade_no' => $merchantTradeNo,
+            'total_amount'      => $totalAmount,
+            'status'            => 'pending',  // 初始狀態為 pending
+            'payment_method'    => 'credit_card',
         ]);
 
         // 建立訂單明細
@@ -65,14 +66,14 @@ class OrderController extends Controller
             'order_id' => 'required|exists:orders,id'
         ]);
 
-        $order = Order::find($request->order_id);
+        $order = Order::findOrFail($request->order_id);
 
         // 若訂單已付款
         if ($order->status === 'paid') {
             return response()->json(['message' => '此訂單已付款'], 400);
         }
 
-        // 產生模擬付款連結（未來可換成 ECPay API 呼叫）
+        // 產生模擬付款連結（未來可整合 ECPay）
         $paymentUrl = url("/fake-payment/{$order->id}");
 
         return response()->json([
@@ -92,11 +93,11 @@ class OrderController extends Controller
             'order_id' => 'required|exists:orders,id'
         ]);
 
-        $order = Order::find($request->order_id);
+        $order = Order::findOrFail($request->order_id);
 
-        // 檢查訂單是否已付款
+        // 若已付款則回應錯誤
         if ($order->status === 'paid') {
-            return response()->json(['message' => '此訂單已經付款過了'], 400);
+            return response()->json(['message' => '此訂單已付款'], 400);
         }
 
         // 更新訂單狀態為 paid
@@ -106,8 +107,7 @@ class OrderController extends Controller
     }
 
     /**
-     * 查詢訂單清單
-     * GET /api/orders
+     * 查詢訂單清單 (GET /api/orders)
      */
     public function index()
     {
@@ -118,8 +118,7 @@ class OrderController extends Controller
     }
 
     /**
-     * 取得單筆訂單詳情
-     * GET /api/orders/{id}
+     * 取得單筆訂單詳情 (GET /api/orders/{id})
      */
     public function show($id)
     {
@@ -134,8 +133,7 @@ class OrderController extends Controller
     }
 
     /**
-     * 取消訂單：僅限未付款 (pending) 的訂單
-     * DELETE /api/orders/{id}/cancel
+     * 取消訂單：僅限未付款 (pending) 的訂單 (DELETE /api/orders/{id}/cancel)
      */
     public function cancel($id)
     {

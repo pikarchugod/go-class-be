@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\User;
 use App\Models\Course;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class OrderSeeder extends Seeder
 {
@@ -18,7 +19,7 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-         // 取得所有學生的 ID
+        // 取得所有學生的 ID
         $students = User::where('role', 'student')->pluck('id')->toArray();
         // 取得所有課程的 ID
         $courses = Course::pluck('id')->toArray(); // 這裡修正為只有 ID
@@ -46,7 +47,7 @@ class OrderSeeder extends Seeder
                 'total_amount' => $totalAmount,
                 'status' => 'paid', // 假設都已付款
                 'payment_method' => 'credit_card', // 假設付款方式
-                'trade_no' => 'TRADE' . strtoupper(uniqid()), // 模擬交易號
+                'merchant_trade_no' => 'ECPAY' . strtoupper(Str::random(10)), // 給 ECPay 的唯一值
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
@@ -65,6 +66,6 @@ class OrderSeeder extends Seeder
                     'updated_at' => Carbon::now(),
                 ]);
             }
-         }
+        }
     }
 }

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('total_amount');
             $table->enum('status', ['pending', 'paid', 'failed', 'canceled'])->default('pending');
             $table->string('payment_method')->nullable();
-            $table->string('trade_no')->nullable();
+            $table->string('merchant_trade_no')->unique()->nullable();
             $table->timestamps();
         });
     }

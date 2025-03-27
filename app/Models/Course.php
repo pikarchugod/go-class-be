@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
@@ -12,6 +13,7 @@ use App\Models\Review;
 
 class Course extends Model
 {
+    use CrudTrait;
     use HasFactory;
 
     protected $fillable = [
@@ -33,7 +35,7 @@ class Course extends Model
     // 所屬分類
     public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     // 課程的所有章節

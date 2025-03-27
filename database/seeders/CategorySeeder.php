@@ -13,7 +13,7 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        $categories = ['程式設計', '商業行銷', '設計', '攝影', '音樂製作'];
+        $categories = ['圍棋入門', '圍棋初階', '圍棋進階', '圍棋中階', '圍棋高階'];
         foreach ($categories as $name) {
             Category::create(['name' => $name]);
         }

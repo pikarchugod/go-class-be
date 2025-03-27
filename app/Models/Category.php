@@ -26,6 +26,6 @@ class Category extends Model
     // 該分類下的課程
     public function courses()
     {
-        return $this->hasMany(Course::class);
+        return $this->hasMany(Course::class, 'category_id');
     }
 }

@@ -15,19 +15,22 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-         // 先清空 users 表
-         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-         DB::table('users')->truncate();
-         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
- 
-         // 建立一個老師帳號
-         User::create([
-             'name' => 'John Doe',
-             'email' => 'teacher@example.com',
-             'password' => Hash::make('password'),
-             'role' => 'teacher', // 確保角色是老師
-         ]);
-         // 建立 3 位學生
+
+        User::create([
+            'name' => 'Admin',
+            'email' => 'admin@example.com',
+            'password' => Hash::make('admin123'),
+            'role' => 'admin',
+        ]);
+
+        // 建立一個老師帳號
+        User::create([
+            'name' => 'John Doe',
+            'email' => 'teacher@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'teacher', // 確保角色是老師
+        ]);
+        // 建立 3 位學生
         User::create([
             'name' => 'Alice',
             'email' => 'alice@example.com',

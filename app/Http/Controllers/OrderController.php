@@ -4,12 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 
 class OrderController extends Controller
 {
+    /**
+     * 結帳：從購物車建立訂單，清空購物車
+     * POST /api/order/checkout
+     * Body: { "payment_method": "credit_card" }
+     */
     public function checkout(Request $request)
     {
         $user = auth()->user();
@@ -20,39 +26,50 @@ class OrderController extends Controller
             return response()->json(['message' => '購物車是空的'], 400);
         }
 
-        // 計算總金額（確保為整數）
+        // 計算總金額
         $totalAmount = $cartItems->sum(fn($item) => $item->price * $item->quantity);
 
         // 產生唯一的 merchant_trade_no
         $merchantTradeNo = 'ORDER' . Str::random(10);
 
-        // 建立訂單，寫入 orders 資料表
-        $order = Order::create([
-            'user_id'           => $user->id,
-            'order_number'      => uniqid('ORDER_'),
-            'merchant_trade_no' => $merchantTradeNo,
-            'total_amount'      => $totalAmount,
-            'status'            => 'pending',  // 初始狀態為 pending
-            'payment_method'    => 'credit_card',
-        ]);
-
-        // 建立訂單明細
-        foreach ($cartItems as $cartItem) {
-            OrderItem::create([
-                'order_id'  => $order->id,
-                'course_id' => $cartItem->course_id,
-                'price'     => $cartItem->price,
-                'quantity'  => $cartItem->quantity,
+        DB::beginTransaction();
+        try {
+            // 建立訂單
+            $order = Order::create([
+                'user_id'           => $user->id,
+                'order_number'      => uniqid('ORDER_'),
+                'merchant_trade_no' => $merchantTradeNo,
+                'total_amount'      => $totalAmount,
+                'status'            => 'pending',  // 初始狀態 pending
+                'payment_method'    => $request->input('payment_method', 'credit_card'),
             ]);
+
+            // 建立訂單明細
+            foreach ($cartItems as $cartItem) {
+                OrderItem::create([
+                    'order_id'  => $order->id,
+                    'course_id' => $cartItem->course_id,
+                    'price'     => $cartItem->price,
+                    'quantity'  => $cartItem->quantity,
+                ]);
+            }
+
+            // 清空購物車
+            $user->carts()->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'message' => '訂單已建立，等待付款',
+                'order'   => $order
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => '結帳失敗',
+                'error'   => $e->getMessage()
+            ], 500);
         }
-
-        // 清空購物車
-        $user->carts()->delete();
-
-        return response()->json([
-            'message' => '訂單已建立，等待付款',
-            'order'   => $order
-        ], 201);
     }
 
     /**
@@ -68,12 +85,11 @@ class OrderController extends Controller
 
         $order = Order::findOrFail($request->order_id);
 
-        // 若訂單已付款
         if ($order->status === 'paid') {
             return response()->json(['message' => '此訂單已付款'], 400);
         }
 
-        // 產生模擬付款連結（未來可整合 ECPay）
+        // 產生模擬付款連結（未來整合 ECPay）
         $paymentUrl = url("/fake-payment/{$order->id}");
 
         return response()->json([
@@ -84,8 +100,7 @@ class OrderController extends Controller
 
     /**
      * 付款成功回調（模擬付款成功後更新狀態）
-     * GET /api/order/payment-success
-     * Query: order_id
+     * GET /api/order/payment-success?order_id=1
      */
     public function paymentSuccess(Request $request)
     {
@@ -95,12 +110,10 @@ class OrderController extends Controller
 
         $order = Order::findOrFail($request->order_id);
 
-        // 若已付款則回應錯誤
         if ($order->status === 'paid') {
             return response()->json(['message' => '此訂單已付款'], 400);
         }
 
-        // 更新訂單狀態為 paid
         $order->update(['status' => 'paid']);
 
         return response()->json(['message' => '付款成功！']);

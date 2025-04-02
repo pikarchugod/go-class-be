@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use App\Models\Chapter;
 use App\Models\Course;
 
@@ -16,25 +14,23 @@ class ChapterSeeder extends Seeder
     public function run(): void
     {
         // 取得所有課程的 ID
-        $courses = Course::pluck('id')->toArray();
+        $courseIds = Course::pluck('id')->toArray();
 
-        // 測試章節內容
-        $chapters = [
-            ['title' => '基礎介紹', 'video_url' => 'https://test.video.url/intro'],
-            ['title' => '進階應用', 'video_url' => 'https://test.video.url/advanced'],
-            ['title' => '專案實作', 'video_url' => 'https://test.video.url/project']
+        // 測試章節資料，依序排列
+        $chaptersData = [
+            ['title' => '基礎概念', 'video_url' => 'https://www.youtube.com/watch?v=yYUQf6G4CJc'],
+            ['title' => '進階應用', 'video_url' => 'https://www.youtube.com/watch?v=V7Bohz21qq4'],
+            ['title' => '專案實作', 'video_url' => 'https://www.youtube.com/watch?v=vNfs7VU_hrQ'],
         ];
 
-        foreach ($courses as $courseId) {
-            // 每個課程隨機建立 2-3 個章節
-            $randomChapters = array_rand($chapters, rand(2, 3));
-
-            foreach ((array) $randomChapters as $index) {
+        // 對於每個課程，依序建立 3 個章節 (sort_order 依序 1,2,3)
+        foreach ($courseIds as $courseId) {
+            foreach ($chaptersData as $index => $data) {
                 Chapter::create([
-                    'course_id' => $courseId,
-                    'title' => $chapters[$index]['title'],
-                    'video_url' => $chapters[$index]['video_url'],
-                    'sort_order' => rand(1, 10),
+                    'course_id'  => $courseId,
+                    'title'      => $data['title'],
+                    'video_url'  => $data['video_url'],
+                    'sort_order' => $index + 1, // 1, 2, 3
                 ]);
             }
         }

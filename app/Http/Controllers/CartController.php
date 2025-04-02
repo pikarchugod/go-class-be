@@ -55,13 +55,26 @@ class CartController extends Controller
     public function viewCart()
     {
         $user = auth()->user();
-        // 載入每個 cart 項目關聯的課程資料
         $cartItems = $user->carts()->with('course')->get();
 
-        return response()->json([
-            'cart' => $cartItems
-        ]);
+        $baseUrl = config('app.url'); // 或硬編寫 "http://127.0.0.1:8000"
+        $cartItems = $cartItems->map(function ($item) use ($baseUrl) {
+            $course = $item->course;
+            $coverUrl = $course && $course->cover_image
+                ? $baseUrl . '/storage/' . $course->cover_image
+                : null;
+            return [
+                'id' => $item->id,
+                'title' => $course ? $course->title : '',
+                'price' => $item->price,
+                'quantity' => $item->quantity,
+                'cover_url' => $coverUrl,
+            ];
+        });
+
+        return response()->json(['cart' => $cartItems]);
     }
+
 
     /**
      * 移除購物車項目

@@ -30,6 +30,14 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'teacher', // 確保角色是老師
         ]);
+        // 建立一個老師帳號
+        User::create([
+            'name' => 'Teacher2',
+            'email' => 'teacher2@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'teacher', // 確保角色是老師
+        ]);
+
         // 建立 3 位學生
         User::create([
             'name' => 'Alice',

@@ -8,40 +8,49 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
 |
-| 這裡放「前後端分離」要用的 API，皆走 Token 模式 (auth:sanctum)。
-| 不需要 sanctum/csrf-cookie，也不會產生 419。
+| 這裡放「前後端分離」要用的 API。所有需要驗證的 API 都放在同一個
+| auth:sanctum 群組裡，只驗證一次 Token。
 |
 */
 
-// 測試用
+// 公共路由：不需要 Token 驗證
 Route::get('/test', function () {
     return response()->json(['msg' => 'ok']);
 });
 
-// 取得使用者資料 (需要 token)
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-// === 基本「註冊 / 登入」(不需要 token) ===
+// 基本註冊/登入與密碼重置，不需要驗證
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/password/email', [AuthController::class, 'sendResetLink']);
+Route::post('/password/reset', [AuthController::class, 'resetPassword']);
 
-// === 需要登入才可使用的路由 ===
+// 以下所有路由都需要驗證
 Route::middleware('auth:sanctum')->group(function () {
+    // 使用者資料
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+    Route::get('/user-info', function (Request $request) {
+        return $request->user();
+    });
+
+    // 課程
+    Route::get('/courses', [CourseController::class, 'index']);
+    Route::get('/courses/{id}', [CourseController::class, 'show']);
 
     // 購物車
     Route::post('/cart/add', [CartController::class, 'addToCart']);
     Route::get('/cart', [CartController::class, 'viewCart']);
     Route::delete('/cart/remove/{id}', [CartController::class, 'removeFromCart']);
 
-    // 結帳 & 訂單
+    // 訂單
     Route::post('/order/checkout', [OrderController::class, 'checkout']);
     Route::get('/orders', [OrderController::class, 'index']);
     Route::get('/orders/{id}', [OrderController::class, 'show']);
@@ -52,24 +61,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/favorites', [FavoriteController::class, 'index']);
     Route::delete('/favorites/{course}', [FavoriteController::class, 'destroy']);
 
+    // 付款
     Route::post('/payment/initiate', [PaymentController::class, 'initiatePayment'])->name('payment.initiate');
+    Route::post('/order/pay', [OrderController::class, 'pay']);
+    Route::get('/order/payment-success', [OrderController::class, 'paymentSuccess']);
+
+    // 我的課程
+    Route::get('/my-courses', [UserController::class, 'myCourses']);
 
     // 登出
     Route::post('/logout', [AuthController::class, 'logout']);
-
-    // 這裡也可以放其他需要驗證的 API
-    Route::get('/user-info', function (Request $request) {
-        return $request->user();
-    });
 });
-
-// 忘記密碼
-Route::post('/password/email', [AuthController::class, 'sendResetLink']);
-Route::post('/password/reset', [AuthController::class, 'resetPassword']);
-
-// 搜尋結果
-Route::get('/courses', [CourseController::class, 'index']);
-
-// 付款
-Route::post('/order/pay', [OrderController::class, 'pay']);
-Route::get('/order/payment-success', [OrderController::class, 'paymentSuccess']);
